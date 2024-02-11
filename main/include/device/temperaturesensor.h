@@ -13,8 +13,8 @@ class CTemperatureSensor : public CDevice
 public:
     CTemperatureSensor();
 
-    bool matter_add_endpoint() override;
     bool matter_init_endpoint() override;
+    bool matter_config_attributes() override;
     void matter_on_change_attribute_value(
         esp_matter::attribute::callback_type_t type,
         uint32_t cluster_id,

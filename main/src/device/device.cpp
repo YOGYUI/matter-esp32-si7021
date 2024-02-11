@@ -14,12 +14,12 @@ CDevice::~CDevice()
 {
 }
 
-bool CDevice::matter_add_endpoint()
+bool CDevice::matter_init_endpoint()
 {
     esp_err_t ret;
     
     if (m_endpoint != nullptr) {
-        matter_init_endpoint();
+        matter_config_attributes();
 
         // get endpoint id
         m_endpoint_id = esp_matter::endpoint::get_id(m_endpoint);
@@ -38,7 +38,7 @@ bool CDevice::matter_add_endpoint()
     return true;
 }
 
-bool CDevice::matter_init_endpoint()
+bool CDevice::matter_config_attributes()
 {
     return true;
 }
@@ -196,12 +196,11 @@ void CDevice::matter_update_cluster_attribute_common(uint16_t endpoint_id, uint3
         esp_err_t ret = esp_matter::attribute::update(endpoint_id, cluster_id, attribute_id, &target_value);
         if (ret != ESP_OK) {
             GetLogger(eLogType::Error)->Log("Failed to update matter attribute (ret: %d)", ret);
-            return false;
         }
     }
 }
 
-void update_measured_value(float value)
+void CDevice::update_measured_value(float value)
 {
 
 }

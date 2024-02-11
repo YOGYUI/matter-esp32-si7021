@@ -15,6 +15,10 @@
 #include "temperaturesensor.h"
 #include "humiditysensor.h"
 
+#define TASK_TIMER_STACK_DEPTH  3072
+#define TASK_TIMER_PRIORITY     5
+#define MEASURE_PERIOD_US       10000000
+
 CSystem* CSystem::_instance = nullptr;
 bool CSystem::m_default_btn_pressed_long = false;
 bool CSystem::m_commisioning_session_working = false;
@@ -30,6 +34,10 @@ CSystem::CSystem()
     m_root_node = nullptr;
     m_handle_default_btn = nullptr;
     m_device_list.clear();
+    m_keepalive = true;
+    m_initialized = false;
+
+    xTaskCreate(task_timer_function, "TASK_TIMER", TASK_TIMER_STACK_DEPTH, this, TASK_TIMER_PRIORITY, &m_task_timer_handle);
 }
 
 CSystem::~CSystem()
@@ -82,28 +90,45 @@ bool CSystem::initialize()
     }
     GetLogger(eLogType::Info)->Log("Root node (endpoint 0) added");
 
-    // prevent endpoint id increment when board reset
-    matter_set_min_endpoint_id(1);
-
     // start matter
     ret = esp_matter::start(matter_event_callback);
     if (ret != ESP_OK) {
         GetLogger(eLogType::Error)->Log("Failed to start matter (ret: %d)", ret);
         return false;
     }
+    // prevent endpoint id increment when board reset
+    matter_set_min_endpoint_id(1);
     GetLogger(eLogType::Info)->Log("Matter started");
 
+    // add temperature sensor endpoint
     CTemperatureSensor *temp_sensor = new CTemperatureSensor();
-    if (temp_sensor && temp_sensor->matter_add_endpoint()) {
+    if (temp_sensor && temp_sensor->matter_init_endpoint()) {
         m_device_list.push_back(temp_sensor);
     } else {
         return false;
     }
+    /*
     float temperature;
     if (GetSi7021Ctrl()->read_temperature(&temperature)) {
         temp_sensor->update_measured_value(temperature);
     }
+    */
 
+    // add humidity sensor endpoint
+    CHumiditySensor *humidity_sensor = new CHumiditySensor();
+    if (humidity_sensor && humidity_sensor->matter_init_endpoint()) {
+        m_device_list.push_back(humidity_sensor);
+    } else {
+        return false;
+    }
+    /*
+    float humidity;
+    if (GetSi7021Ctrl()->read_humidity(&humidity)) {
+        humidity_sensor->update_measured_value(humidity);
+    }
+    */
+
+    m_initialized = true;
     GetLogger(eLogType::Info)->Log("Initialized");
     print_system_info();
     
@@ -113,6 +138,8 @@ bool CSystem::initialize()
 void CSystem::release()
 {
     deinit_default_button();
+    m_keepalive = false;
+    m_initialized = false;
 }
 
 void CSystem::callback_default_button(void *arg, void *data)
@@ -403,4 +430,41 @@ esp_err_t CSystem::matter_attribute_update_callback(esp_matter::attribute::callb
     }
     
     return ESP_OK;
+}
+
+void CSystem::task_timer_function(void *param)
+{
+    CSystem *obj = static_cast<CSystem *>(param);
+    int64_t current_tick_us;
+    int64_t last_tick_us = 0;
+    float measure_temperature;
+    float measure_humidity;
+    CDevice * dev;
+
+    GetLogger(eLogType::Info)->Log("Realtime task (timer) started");
+    while (obj->m_keepalive) {
+        if (obj->m_initialized) {
+            current_tick_us = esp_timer_get_time();
+            if (current_tick_us - last_tick_us >= MEASURE_PERIOD_US) {
+                if (GetSi7021Ctrl()->read_temperature(&measure_temperature)) {
+                    dev = obj->find_device_by_endpoint_id(1);
+                    if (dev) {
+                        dev->update_measured_value(measure_temperature);
+                    }
+                }
+                vTaskDelay(pdMS_TO_TICKS(10));
+                if (GetSi7021Ctrl()->read_humidity(&measure_humidity)) {
+                    dev = obj->find_device_by_endpoint_id(2);
+                    if (dev) {
+                        dev->update_measured_value(measure_humidity);
+                    }
+                }
+                last_tick_us = current_tick_us;
+            }            
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+    GetLogger(eLogType::Info)->Log("Realtime task (timer) terminated");
+    vTaskDelete(nullptr);
 }

@@ -4,7 +4,7 @@
 # purpose: flash manufacture binaries
 
 port=/dev/ttyUSB0
-baudrate=921600
+baudrate=115200
 
 cur_path=${PWD}
 if [[ "$OSTYPE" == "darwin"* ]]; then

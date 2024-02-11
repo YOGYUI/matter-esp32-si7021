@@ -2,6 +2,8 @@
 #ifndef _SYSTEM_H_
 #define _SYSTEM_H_
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include <esp_matter.h>
 #include <esp_matter_core.h>
 #include <iot_button.h>
@@ -36,6 +38,7 @@ public:
 
 private:
     static CSystem* _instance;
+    bool m_initialized;
     CI2CMaster *m_i2c_master;
 
     esp_matter::node_t* m_root_node;
@@ -67,6 +70,12 @@ private:
         esp_matter_attr_val_t *val, 
         void *priv_data
     );
+
+private:
+    bool m_keepalive;
+    TaskHandle_t m_task_timer_handle;
+
+    static void task_timer_function(void *param);
 };
 
 inline CSystem* GetSystem() {

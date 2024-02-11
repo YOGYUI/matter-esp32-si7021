@@ -23,8 +23,8 @@ protected:
     float m_measured_value_prev;
 
 public:
-    virtual bool matter_add_endpoint();
     virtual bool matter_init_endpoint();
+    virtual bool matter_config_attributes();
     bool matter_destroy_endpoint();
     esp_matter::endpoint_t* matter_get_endpoint();
     uint16_t matter_get_endpoint_id();

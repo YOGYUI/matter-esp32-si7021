@@ -8,7 +8,7 @@ CTemperatureSensor::CTemperatureSensor()
     m_matter_update_by_client_clus_tempmeasure_attr_measureval = false;
 }
 
-bool CTemperatureSensor::matter_add_endpoint()
+bool CTemperatureSensor::matter_init_endpoint()
 {
     esp_matter::node_t *root = GetSystem()->get_root_node();
     esp_matter::endpoint::temperature_sensor::config_t config_endpoint;
@@ -21,13 +21,11 @@ bool CTemperatureSensor::matter_add_endpoint()
         return false;
     }
 
-    return CDevice::matter_add_endpoint();
+    return CDevice::matter_init_endpoint();
 }
 
-bool CTemperatureSensor::matter_init_endpoint()
+bool CTemperatureSensor::matter_config_attributes()
 {
-    matter_update_all_attribute_values();
-
     return true;
 }
 
