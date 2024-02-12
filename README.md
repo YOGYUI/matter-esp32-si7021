@@ -4,6 +4,27 @@ Matter 온습도 센서(Temperature/Humidity Sensor) 예제 프로젝트<br>
 - Temperature Measurement (Cluster Id: `0x0402`)
 - Relative Humidity Measurement (Cluster Id: `0x0405`)
 
+Software (Matter)
+---
+2개의 Endpoint가 아래와 같이 생성된다
+
+1. Endpoint ID `1`<br>
+    Device Type: Temperature Sensor (Classification ID: `0x0302`)<br>
+    [Clusters]
+    - Temperature Measurement (Cluster ID: `0x0402`)<br>
+        [Attributes]
+        - Measured Value (Attribute ID: `0x0000`)
+        - Min Measured Value (Attribute ID: `0x0001`)
+        - Max Measured Value (Attribute ID: `0x0002`)
+2. Endpoint ID `2`<br>
+    Device Type: Humidity Sensor (Classification ID: `0x0307`) <br>
+    [Clusters]
+    - Relative Humidity Measurement (Cluster ID: `0x0405`)<br>
+        [Attributes]
+        - Measured Value (Attribute ID: `0x0000`)
+        - Min Measured Value (Attribute ID: `0x0001`)
+        - Max Measured Value (Attribute ID: `0x0002`)
+
 Hardware
 ---
 [Si7021](https://www.silabs.com/documents/public/data-sheets/Si7021-A20.pdf): I2C 통신 방식의 온습도 센서 IC 사용<br>
