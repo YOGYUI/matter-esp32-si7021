@@ -19,8 +19,6 @@ public:
 protected:
     esp_matter::endpoint_t *m_endpoint;
     uint16_t m_endpoint_id;
-    float m_measured_value;
-    float m_measured_value_prev;
 
 public:
     virtual bool matter_init_endpoint();

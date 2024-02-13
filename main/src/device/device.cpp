@@ -6,8 +6,6 @@ CDevice::CDevice()
 {
     m_endpoint = nullptr;
     m_endpoint_id = 0;
-    m_measured_value = 0.f;
-    m_measured_value_prev = 0.f;
 }
 
 CDevice::~CDevice()

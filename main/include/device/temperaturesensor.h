@@ -27,6 +27,8 @@ public:
     void update_measured_value(float value) override;
 
 private:
+    int16_t m_measured_value;
+    int16_t m_measured_value_prev;
     bool m_matter_update_by_client_clus_tempmeasure_attr_measureval;    
 
     void matter_update_clus_tempmeasure_attr_measureval(bool force_update = false);

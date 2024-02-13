@@ -89,7 +89,9 @@ bool CSi7021Ctrl::read_temperature(float *temperature)
     }
 
     uint8_t data_write[1] = {SI7021_MEASTEMP_NOHOLD_CMD};
-    m_i2c_master->write_bytes(SI7021_DEFAULT_ADDRESS, data_write, 1);
+    if (!m_i2c_master->write_bytes(SI7021_DEFAULT_ADDRESS, data_write, 1)) {
+        return false;
+    }
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
     uint8_t data_read[3] = {0,};
@@ -111,7 +113,9 @@ bool CSi7021Ctrl::read_humidity(float *humidity)
     }
     
     uint8_t data_write[1] = {SI7021_MEASRH_NOHOLD_CMD};
-    m_i2c_master->write_bytes(SI7021_DEFAULT_ADDRESS, data_write, 1);
+    if (!m_i2c_master->write_bytes(SI7021_DEFAULT_ADDRESS, data_write, 1)) {
+        return false;
+    }
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
     uint8_t data_read[3] = {0,};

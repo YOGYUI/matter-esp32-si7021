@@ -6,6 +6,8 @@
 CHumiditySensor::CHumiditySensor()
 {
     m_matter_update_by_client_clus_relhummeasure_attr_measureval = false;
+    m_measured_value = 0;
+    m_measured_value_prev = 0;
 }
 
 bool CHumiditySensor::matter_init_endpoint()
@@ -45,9 +47,9 @@ void CHumiditySensor::matter_update_all_attribute_values()
 
 void CHumiditySensor::update_measured_value(float value)
 {
-    m_measured_value = value;
+    m_measured_value = (uint16_t)(value * 100.f);
     if (m_measured_value_prev != m_measured_value) {
-        GetLogger(eLogType::Info)->Log("Update measured relative humidity value as %g", m_measured_value);
+        GetLogger(eLogType::Info)->Log("Update measured relative humidity value as %g", value);
         matter_update_clus_relhummeasure_attr_measureval();
     }
     m_measured_value_prev = m_measured_value;
@@ -55,7 +57,7 @@ void CHumiditySensor::update_measured_value(float value)
 
 void CHumiditySensor::matter_update_clus_relhummeasure_attr_measureval(bool force_update/*=false*/)
 {
-    esp_matter_attr_val_t target_value = esp_matter_nullable_uint16(int16_t(m_measured_value * 100.f));
+    esp_matter_attr_val_t target_value = esp_matter_nullable_uint16(m_measured_value);
     matter_update_cluster_attribute_common(
         m_endpoint_id,
         chip::app::Clusters::RelativeHumidityMeasurement::Id,

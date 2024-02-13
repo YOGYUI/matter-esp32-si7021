@@ -1,11 +1,12 @@
 #include "temperaturesensor.h"
 #include "system.h"
 #include "logger.h"
-#include "si7021.h"
 
 CTemperatureSensor::CTemperatureSensor()
 {
     m_matter_update_by_client_clus_tempmeasure_attr_measureval = false;
+    m_measured_value = 0;
+    m_measured_value_prev = 0;
 }
 
 bool CTemperatureSensor::matter_init_endpoint()
@@ -47,9 +48,9 @@ void CTemperatureSensor::matter_update_all_attribute_values()
 
 void CTemperatureSensor::update_measured_value(float value)
 {
-    m_measured_value = value;
+    m_measured_value = (int16_t)(value * 100.f);
     if (m_measured_value_prev != m_measured_value) {
-        GetLogger(eLogType::Info)->Log("Update measured temperature value as %g", m_measured_value);
+        GetLogger(eLogType::Info)->Log("Update measured temperature value as %g", value);
         matter_update_clus_tempmeasure_attr_measureval();
     }
     m_measured_value_prev = m_measured_value;
@@ -57,7 +58,7 @@ void CTemperatureSensor::update_measured_value(float value)
 
 void CTemperatureSensor::matter_update_clus_tempmeasure_attr_measureval(bool force_update/*=false*/)
 {
-    esp_matter_attr_val_t target_value = esp_matter_nullable_int16(int16_t(m_measured_value * 100.f));
+    esp_matter_attr_val_t target_value = esp_matter_nullable_int16(m_measured_value);
     matter_update_cluster_attribute_common(
         m_endpoint_id,
         chip::app::Clusters::TemperatureMeasurement::Id,
